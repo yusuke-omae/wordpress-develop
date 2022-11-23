@@ -1017,7 +1017,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 	switch ( $args['format'] ) {
 		case 'array':
-			$return =& $a;
+			$return = & $a;
 			break;
 		case 'list':
 			/*
@@ -1279,25 +1279,35 @@ function term_description( $term = 0, $deprecated = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post     Post ID or object.
- * @param string      $taxonomy Taxonomy name.
+ * @param int    $post     Post ID.
+ * @param string $taxonomy Taxonomy name.
  * @return WP_Term[]|false|WP_Error Array of WP_Term objects on success, false if there are no terms
  *                                  or the post does not exist, WP_Error on failure.
  */
 function get_the_terms( $post, $taxonomy ) {
-	$post = get_post( $post );
+	if ( ! is_numeric( $post ) ) {
+		_deprecated_argument( __FUNCTION__, '6.2.0' );
+		$post = get_post( $post );
 
-	if ( ! $post ) {
-		return false;
+		if ( ! $post ) {
+			return false;
+		}
+
+		$post_id = $post->ID;
+	} else {
+		$post_id = absint( $post );
+		if ( ! $post_id ) {
+			return false;
+		}
 	}
 
-	$terms = get_object_term_cache( $post->ID, $taxonomy );
+	$terms = get_object_term_cache( $post_id, $taxonomy );
 
 	if ( false === $terms ) {
-		$terms = wp_get_object_terms( $post->ID, $taxonomy );
+		$terms = wp_get_object_terms( $post_id, $taxonomy );
 		if ( ! is_wp_error( $terms ) ) {
 			$term_ids = wp_list_pluck( $terms, 'term_id' );
-			wp_cache_add( $post->ID, $term_ids, $taxonomy . '_relationships' );
+			wp_cache_add( $post_id, $term_ids, $taxonomy . '_relationships' );
 		}
 	}
 
@@ -1310,9 +1320,9 @@ function get_the_terms( $post, $taxonomy ) {
 	 * @param int                $post_id  Post ID.
 	 * @param string             $taxonomy Name of the taxonomy.
 	 */
-	$terms = apply_filters( 'get_the_terms', $terms, $post->ID, $taxonomy );
+	$terms = apply_filters( 'get_the_terms', $terms, $post_id, $taxonomy );
 
-	if ( empty( $terms ) ) {
+	if ( ! $terms ) {
 		return false;
 	}
 
