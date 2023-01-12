@@ -4076,12 +4076,13 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id ID of the control.
-	 * @return WP_Customize_Control|void The control object, if set.
+	 * @return ?WP_Customize_Control The control object, if set.
 	 */
 	public function get_control( $id ) {
 		if ( isset( $this->controls[ $id ] ) ) {
 			return $this->controls[ $id ];
 		}
+		return null;
 	}
 
 	/**
